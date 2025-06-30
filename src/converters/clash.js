@@ -35,7 +35,7 @@ export async function generateClashConfig(config) {
     }
   }
 
-  const clashConfig = {
+  let clashConfig = {
     port: 7890,
     'socks-port': 7891,
     'allow-lan': false,
