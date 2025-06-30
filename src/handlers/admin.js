@@ -64,9 +64,9 @@ async function handleSaveConfig(formData, env, token) {
   const success = await saveConfig(env, token, config);
   
   if (success) {
-    return new Response('配置保存成功', { 
-      status: 302, 
-      headers: { 'Location': `/admin?token=' + token + '&success=1` }
+    return new Response('配置保存成功', {
+      status: 302,
+      headers: { 'Location': `/admin?token=${token}&success=1` }
     });
   } else {
     return new Response('配置保存失败', { status: 500 });
@@ -104,9 +104,9 @@ async function handleAddNode(formData, env, token) {
   
   const success = await saveConfig(env, token, config);
   
-  return new Response('节点添加成功', { 
-    status: 302, 
-    headers: { 'Location': `/admin?token=' + token + '&success=2` }
+  return new Response('节点添加成功', {
+    status: 302,
+    headers: { 'Location': `/admin?token=${token}&success=2` }
   });
 }
 
@@ -119,9 +119,9 @@ async function handleDeleteNode(formData, env, token) {
     await saveConfig(env, token, config);
   }
   
-  return new Response('节点删除成功', { 
-    status: 302, 
-    headers: { 'Location': `/admin?token=' + token + '&success=3` }
+  return new Response('节点删除成功', {
+    status: 302,
+    headers: { 'Location': `/admin?token=${token}&success=3` }
   });
 }
 
@@ -137,9 +137,9 @@ async function handleAddProxyIP(formData, env, token) {
     }
   }
   
-  return new Response('反代IP添加成功', { 
-    status: 302, 
-    headers: { 'Location': `/admin?token=' + token + '&success=4` }
+  return new Response('反代IP添加成功', {
+    status: 302,
+    headers: { 'Location': `/admin?token=${token}&success=4` }
   });
 }
 
@@ -173,9 +173,9 @@ async function handleImportProxyIPs(formData, env, token) {
     await saveConfig(env, token, config);
   }
   
-  return new Response('反代IP导入成功', { 
-    status: 302, 
-    headers: { 'Location': `/admin?token=' + token + '&success=5` }
+  return new Response('反代IP导入成功', {
+    status: 302,
+    headers: { 'Location': `/admin?token=${token}&success=5` }
   });
 }
 
