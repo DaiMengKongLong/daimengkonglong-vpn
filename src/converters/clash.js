@@ -1,5 +1,7 @@
+import { parseIniConfig, applyIniConfigToClash } from '../utils/iniParser.js';
+
 export async function generateClashConfig(config) {
-  const { nodes, proxyIPs, clashTemplate } = config;
+  const { nodes, proxyIPs, clashTemplate, iniTemplate } = config;
   const proxies = [];
   const proxyNames = [];
 
@@ -133,21 +135,29 @@ export async function generateClashConfig(config) {
     ]
   };
 
-  // 如果有自定义模板，合并配置
+  // 优先使用INI配置，然后是Clash模板
+  if (iniTemplate) {
+    try {
+      const iniConfig = parseIniConfig(iniTemplate);
+      if (iniConfig) {
+        console.log('应用INI配置:', iniConfig);
+        clashConfig = applyIniConfigToClash(clashConfig, iniConfig, proxyNames);
+      }
+    } catch (e) {
+      console.error('INI配置解析失败:', e);
+    }
+  }
+
+  // 如果有自定义Clash模板，作为补充配置
   if (clashTemplate) {
     try {
       const template = JSON.parse(clashTemplate);
-      Object.assign(clashConfig, template);
-      // 确保代理和代理组不被覆盖
+      // 只合并非关键配置，保护代理和代理组
+      const { proxies: _, 'proxy-groups': __, rules: ___, ...otherConfig } = template;
+      Object.assign(clashConfig, otherConfig);
+
+      // 确保代理不被覆盖
       clashConfig.proxies = proxies;
-      if (template['proxy-groups']) {
-        clashConfig['proxy-groups'] = template['proxy-groups'].map(group => {
-          if (group.proxies && group.proxies.includes('{{proxies}}')) {
-            group.proxies = group.proxies.map(p => p === '{{proxies}}' ? proxyNames : p).flat();
-          }
-          return group;
-        });
-      }
     } catch (e) {
       console.error('Invalid clash template:', e);
     }

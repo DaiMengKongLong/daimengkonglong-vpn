@@ -1,98 +1,9 @@
-// 配置管理工具
+#!/usr/bin/env node
 
-export async function getConfig(env, token = 'default') {
-  try {
-    const configKey = `config_${token}`;
-    const configData = await env.CONFIG_KV.get(configKey);
-    
-    if (!configData) {
-      // 返回默认配置
-      return getDefaultConfig();
-    }
-    
-    return JSON.parse(configData);
-  } catch (error) {
-    console.error('获取配置失败:', error);
-    return getDefaultConfig();
-  }
-}
+// 测试INI配置解析器
+import { parseIniConfig, validateIniConfig } from './src/utils/iniParser.js';
 
-export async function saveConfig(env, token, config) {
-  try {
-    // 检查KV绑定是否存在
-    if (!env.CONFIG_KV) {
-      console.error('CONFIG_KV绑定未配置');
-      throw new Error('CONFIG_KV绑定未配置，请在Cloudflare Dashboard中配置KV namespace binding');
-    }
-
-    const configKey = `config_${token}`;
-    console.log('保存配置到KV:', configKey, config);
-
-    await env.CONFIG_KV.put(configKey, JSON.stringify(config));
-    console.log('配置保存成功');
-    return true;
-  } catch (error) {
-    console.error('保存配置失败:', error);
-    console.error('错误详情:', error.message);
-    return false;
-  }
-}
-
-export async function getAllConfigs(env) {
-  try {
-    const list = await env.CONFIG_KV.list({ prefix: 'config_' });
-    const configs = [];
-    
-    for (const key of list.keys) {
-      const token = key.name.replace('config_', '');
-      const configData = await env.CONFIG_KV.get(key.name);
-      if (configData) {
-        const config = JSON.parse(configData);
-        configs.push({
-          token,
-          name: config.name || token,
-          nodeCount: config.nodes ? config.nodes.length : 0,
-          lastModified: key.metadata?.lastModified || new Date().toISOString()
-        });
-      }
-    }
-    
-    return configs;
-  } catch (error) {
-    console.error('获取配置列表失败:', error);
-    return [];
-  }
-}
-
-export function getDefaultConfig() {
-  return {
-    name: '默认订阅',
-    description: '默认订阅配置',
-    icon: 'https://img.picui.cn/free/2025/06/30/686234d353680.png',
-    nodes: [
-      {
-        type: 'vmess',
-        name: '示例节点',
-        server: '1.2.3.4',
-        port: 443,
-        uuid: '12345678-1234-1234-1234-123456789abc',
-        alterId: 0,
-        network: 'ws',
-        path: '/path',
-        host: 'example.com',
-        tls: 'tls'
-      }
-    ],
-    proxyIPs: [],
-    iniTemplate: getDefaultIniTemplate(),
-    clashTemplate: null,
-    customTitle: '节点订阅服务',
-    customCSS: ''
-  };
-}
-
-export function getDefaultIniTemplate() {
-  return `[custom]
+const testIniConfig = `[custom]
 ;不要随意改变关键字，否则会导致出错
 ;acl4SSR规则
 
@@ -179,4 +90,36 @@ overwrite_original_rules=true
 ;clash_rule_base=https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/GeneralClashConfig.yml
 
 ;luck`;
+
+console.log('🔍 测试INI配置解析...\n');
+
+// 测试解析
+const validation = validateIniConfig(testIniConfig);
+console.log('验证结果:', validation);
+
+if (validation.valid) {
+  const config = parseIniConfig(testIniConfig);
+  console.log('\n📊 解析结果:');
+  console.log('规则集数量:', config.rulesets.length);
+  console.log('代理组数量:', config.proxyGroups.length);
+  
+  console.log('\n📋 代理组列表:');
+  config.proxyGroups.forEach((group, index) => {
+    console.log(`${index + 1}. ${group.name} (${group.type})`);
+    if (group.proxies.length > 0) {
+      console.log(`   代理: ${group.proxies.slice(0, 3).join(', ')}${group.proxies.length > 3 ? '...' : ''}`);
+    }
+  });
+  
+  console.log('\n📜 规则集列表:');
+  config.rulesets.slice(0, 5).forEach((rule, index) => {
+    console.log(`${index + 1}. ${rule.group} <- ${rule.url}`);
+  });
+  if (config.rulesets.length > 5) {
+    console.log(`   ... 还有 ${config.rulesets.length - 5} 个规则集`);
+  }
+} else {
+  console.log('❌ 验证失败:', validation.error);
 }
+
+console.log('\n✅ 测试完成！');
