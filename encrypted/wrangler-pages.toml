@@ -1,0 +1,18 @@
+# Cloudflare Pages 专用配置文件
+# 用于 Pages 部署时的特殊配置
+
+name = "subscription-converter-pages"
+pages_build_output_dir = "."
+compatibility_date = "2024-06-30"
+
+# Pages 环境变量
+[env.production.vars]
+ENVIRONMENT = "production"
+DEPLOYMENT_TYPE = "pages"
+
+[env.preview.vars]
+ENVIRONMENT = "preview"
+DEPLOYMENT_TYPE = "pages"
+
+# KV 绑定 - 需要在 Pages 项目设置中手动配置
+# CONFIG_KV = "your-kv-namespace-id"
