@@ -19,11 +19,21 @@ export async function getConfig(env, token = 'default') {
 
 export async function saveConfig(env, token, config) {
   try {
+    // 检查KV绑定是否存在
+    if (!env.CONFIG_KV) {
+      console.error('CONFIG_KV绑定未配置');
+      throw new Error('CONFIG_KV绑定未配置，请在Cloudflare Dashboard中配置KV namespace binding');
+    }
+
     const configKey = `config_${token}`;
+    console.log('保存配置到KV:', configKey, config);
+
     await env.CONFIG_KV.put(configKey, JSON.stringify(config));
+    console.log('配置保存成功');
     return true;
   } catch (error) {
     console.error('保存配置失败:', error);
+    console.error('错误详情:', error.message);
     return false;
   }
 }
