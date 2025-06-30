@@ -1,14 +1,31 @@
+# Cloudflare Workers 配置
 name = "subscription-converter"
 main = "src/index.js"
 compatibility_date = "2024-06-30"
 
+# 环境变量配置
 [vars]
 ENVIRONMENT = "production"
+DEPLOYMENT_TYPE = "workers"
 
+# KV 命名空间配置
 [[kv_namespaces]]
 binding = "CONFIG_KV"
 id = "your-kv-namespace-id"
 preview_id = "your-preview-kv-namespace-id"
 
+# 构建配置
 [build]
 command = ""
+
+# Pages 兼容性配置
+# 当部署到 Pages 时，会使用 _worker.js 作为入口文件
+# Pages 会自动识别并使用这个文件
+
+# 开发环境配置
+[env.development]
+vars = { ENVIRONMENT = "development", DEPLOYMENT_TYPE = "workers" }
+
+# 预览环境配置
+[env.preview]
+vars = { ENVIRONMENT = "preview", DEPLOYMENT_TYPE = "workers" }

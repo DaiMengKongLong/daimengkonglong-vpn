@@ -1,6 +1,6 @@
-# 🚀 Cloudflare Workers 订阅转换服务
+# 🚀 Cloudflare 订阅转换服务
 
-一个基于 Cloudflare Workers 的多格式订阅转换服务，支持 Base64、Clash、SingBox、Loon、Surge 等多种订阅格式，具有 Glassmorphism（磨砂玻璃）风格的管理界面。
+一个基于 Cloudflare Workers 和 Pages 的多格式订阅转换服务，支持 Base64、Clash、SingBox、Loon、Surge 等多种订阅格式，具有 Glassmorphism（磨砂玻璃）风格的管理界面。
 
 ## ✨ 特性
 
@@ -12,32 +12,59 @@
 - 🌐 **反代IP支持**: 支持批量导入和管理反代IP
 - 💾 **数据持久化**: 使用 Cloudflare KV 存储配置数据
 - 🎯 **多Token支持**: 支持多个独立的订阅配置
+- 🚀 **双部署支持**: 同时支持 Workers 和 Pages 部署
+- 🔧 **环境自适应**: 自动检测和适配运行环境
 
 ## 🚀 快速开始
 
-### 1. 克隆项目
+本项目支持两种部署方式：**Cloudflare Workers** 和 **Cloudflare Pages**。
+
+### 方式一：使用部署脚本（推荐）
+
+**Workers 部署：**
+```bash
+# Linux/Mac
+./deploy.sh
+
+# Windows
+deploy.bat
+```
+
+**Pages 部署：**
+```bash
+# Linux/Mac
+./deploy-pages.sh
+
+# Windows
+deploy-pages.bat
+```
+
+### 方式二：手动部署
+
+#### 1. 克隆项目
 
 ```bash
 git clone <repository-url>
 cd subscription-converter
 ```
 
-### 2. 安装依赖
+#### 2. 安装依赖
 
 ```bash
 npm install
 ```
 
-### 3. 配置 Cloudflare
+#### 3. 配置 Cloudflare
 
 1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
 2. 创建一个新的 KV 命名空间：
-   - 进入 "Workers & Pages" > "KV"
-   - 点击 "Create a namespace"
-   - 命名为 `subscription-config`
-3. 复制命名空间 ID 并更新 `wrangler.toml` 文件中的 `id` 字段
+   ```bash
+   npx wrangler kv:namespace create "CONFIG_KV"
+   npx wrangler kv:namespace create "CONFIG_KV" --preview
+   ```
+3. 复制命名空间 ID 并更新配置
 
-### 4. 部署到 Cloudflare Workers
+#### 4A. 部署到 Cloudflare Workers
 
 ```bash
 # 开发环境
@@ -46,6 +73,43 @@ npm run dev
 # 部署到生产环境
 npm run deploy
 ```
+
+#### 4B. 部署到 Cloudflare Pages
+
+**方法1：Git 仓库部署（推荐）**
+1. 将代码推送到 Git 仓库
+2. 在 Cloudflare Dashboard 中创建 Pages 项目
+3. 连接 Git 仓库并配置构建设置
+4. 在环境变量中添加 `CONFIG_KV`
+
+**方法2：直接部署**
+```bash
+# 创建 Pages 项目
+npm run pages:create your-project-name
+
+# 部署到 Pages
+npm run deploy:pages
+```
+
+## 📊 部署方式对比
+
+| 特性 | Workers | Pages |
+|------|---------|-------|
+| **部署方式** | CLI 部署 | Git 仓库 + CLI |
+| **自动部署** | 手动 | Git 推送自动部署 |
+| **版本控制** | 基础 | 完整的部署历史 |
+| **分支部署** | 不支持 | 支持预览分支 |
+| **回滚** | 手动 | 一键回滚 |
+| **域名** | workers.dev | pages.dev |
+| **自定义域名** | 支持 | 支持 |
+| **静态资源** | 不支持 | 支持 |
+| **构建过程** | 无 | 可配置 |
+| **适用场景** | 纯 API 服务 | 全栈应用 |
+
+### 推荐选择
+
+- **选择 Workers**：如果你需要简单快速的部署，主要用作 API 服务
+- **选择 Pages**：如果你需要版本控制、自动部署、分支预览等高级功能
 
 ## 📖 使用说明
 
@@ -155,24 +219,33 @@ GET /api/test?type=proxy&target=proxy-ip
 
 ## 📁 项目结构
 
-```
-src/
-├── index.js              # 主入口文件
-├── handlers/              # 请求处理器
-│   ├── router.js         # 路由处理
-│   ├── home.js           # 首页处理
-│   ├── admin.js          # 管理页面处理
-│   ├── subscription.js   # 订阅生成处理
-│   └── api.js            # API 接口处理
-├── converters/           # 订阅格式转换器
-│   ├── base64.js         # Base64 转换
-│   ├── clash.js          # Clash 转换
-│   ├── singbox.js        # SingBox 转换
-│   ├── loon.js           # Loon 转换
-│   └── surge.js          # Surge 转换
-└── utils/                # 工具函数
-    ├── config.js         # 配置管理
-    └── cors.js           # CORS 处理
+```text
+├── src/                          # 源代码目录
+│   ├── index.js                 # Workers 入口文件
+│   ├── handlers/                # 请求处理器
+│   │   ├── router.js           # 路由分发
+│   │   ├── home.js             # 首页处理
+│   │   ├── admin.js            # 管理页面
+│   │   ├── subscription.js     # 订阅生成
+│   │   └── api.js              # API 接口
+│   ├── converters/             # 格式转换器
+│   │   ├── base64.js           # Base64 转换
+│   │   ├── clash.js            # Clash 转换
+│   │   ├── singbox.js          # SingBox 转换
+│   │   ├── loon.js             # Loon 转换
+│   │   └── surge.js            # Surge 转换
+│   └── utils/                  # 工具函数
+│       ├── config.js           # 配置管理
+│       ├── cors.js             # CORS 处理
+│       └── environment.js      # 环境检测
+├── functions/                   # Pages Functions
+│   └── _middleware.js          # Pages 中间件
+├── _worker.js                  # Pages 入口文件
+├── package.json                # 项目配置
+├── wrangler.toml              # Cloudflare 配置
+├── deploy.sh / deploy.bat     # Workers 部署脚本
+├── deploy-pages.sh / .bat     # Pages 部署脚本
+└── README.md                  # 项目文档
 ```
 
 ## 🛠️ 开发
