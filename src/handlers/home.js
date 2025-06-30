@@ -319,8 +319,7 @@ function getGlassmorphismCSS() {
             flex-direction: column;
             text-align: center;
         }
-    }
-  ';
+    }';
 }
 
 function getJavaScript() {

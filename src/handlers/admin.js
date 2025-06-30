@@ -190,8 +190,7 @@ function generateAdminPage(config, token) {
 }
 
 function getAdminCSS() {
-  return '
-    * {
+  return '* {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
@@ -491,8 +490,7 @@ function getAdminCSS() {
         .tab-btn {
             text-align: center;
         }
-    }
-  ';
+    }';
 }
 
 function getAdminJavaScript() {
