@@ -33,7 +33,33 @@ function generateHomePage(config, baseUrl, token) {
     { name: 'Surge订阅', url: baseUrl + '/sub/surge?token=' + token, icon: icons.surge || '🌊' }
   ];
 
-  return '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>' + (config.customTitle || '节点订阅服务') + '</title><style>' + getGlassmorphismCSS() + (config.customCSS || '') + '</style></head><body><div class="background"><div class="shape"></div><div class="shape"></div><div class="shape"></div></div><div class="container"><header class="glass-card"><div class="logo"><img src="' + (config.icon || 'https://img.picui.cn/free/2025/06/30/686234d353680.png') + '" alt="Logo" class="logo-img"><h1>' + (config.name || '节点订阅服务') + '</h1></div><p class="description">' + (config.description || '多格式订阅转换服务') + '</p></header><main class="main-content"><section class="subscription-section"><h2>📡 订阅链接</h2><div class="subscription-grid">' + subscriptionLinks.map(link => '<div class="subscription-card glass-card" onclick="copyToClipboard(\'' + link.url + '\')"><div class="subscription-icon">' + link.icon + '</div><h3>' + link.name + '</h3><p class="subscription-url">' + link.url + '</p><button class="copy-btn">📋 复制链接</button></div>').join('') + '</div></section><section class="config-section"><h2>⚙️ 配置信息</h2><div class="config-card glass-card"><div class="config-item"><span class="config-label">节点数量:</span><span class="config-value">' + (config.nodes ? config.nodes.length : 0) + '</span></div><div class="config-item"><span class="config-label">反代IP数量:</span><span class="config-value">' + (config.proxyIPs ? config.proxyIPs.length : 0) + '</span></div><div class="config-item"><span class="config-label">Token:</span><span class="config-value">' + token + '</span></div></div></section>' + (config.proxyIPs && config.proxyIPs.length > 0 ? '<section class="proxy-section"><h2>🌐 反代理IP列表</h2><div class="proxy-grid glass-card">' + config.proxyIPs.map(proxyIP => {const parts = proxyIP.split(\'#\'); const ipPort = parts[0] || proxyIP; const region = parts[1] || \'未知地区\'; const [ip, port] = ipPort.split(\':\'); return \'<div class="proxy-item"><div class="proxy-ip">\' + (ip || ipPort) + \'</div>\' + (port ? \'<div class="proxy-port">:\' + port + \'</div>\' : \'\') + \'<div class="proxy-region">\' + region + \'</div></div>\';}).join(\'\') + \'</div></section>\' : \'\') + '<section class="ini-section"><h2>📄 INI配置</h2><div class="ini-card glass-card"><textarea readonly class="ini-content">' + (config.iniTemplate || '') + '</textarea><button class="copy-btn" onclick="copyIniConfig()">📋 复制INI配置</button></div></section></main><footer class="glass-card"><p>© 2024 节点订阅服务 | <a href="' + baseUrl + '/admin?token=' + token + '" class="admin-link">🔧 管理面板</a></p></footer></div><div id="toast" class="toast"></div><script>' + getJavaScript() + '</script></body></html>';
+  // 构建反代理IP部分
+  let proxySection = '';
+  if (config.proxyIPs && config.proxyIPs.length > 0) {
+    const proxyItems = config.proxyIPs.map(proxyIP => {
+      const parts = proxyIP.split('#');
+      const ipPort = parts[0] || proxyIP;
+      const region = parts[1] || '未知地区';
+      const ipPortParts = ipPort.split(':');
+      const ip = ipPortParts[0];
+      const port = ipPortParts[1];
+
+      return '<div class="proxy-item">' +
+             '<div class="proxy-ip">' + (ip || ipPort) + '</div>' +
+             (port ? '<div class="proxy-port">:' + port + '</div>' : '') +
+             '<div class="proxy-region">' + region + '</div>' +
+             '</div>';
+    }).join('');
+
+    proxySection = '<section class="proxy-section">' +
+                   '<h2>🌐 反代理IP列表</h2>' +
+                   '<div class="proxy-grid glass-card">' +
+                   proxyItems +
+                   '</div>' +
+                   '</section>';
+  }
+
+  return '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>' + (config.customTitle || '节点订阅服务') + '</title><style>' + getGlassmorphismCSS() + (config.customCSS || '') + '</style></head><body><div class="background"><div class="shape"></div><div class="shape"></div><div class="shape"></div></div><div class="container"><header class="glass-card"><div class="logo"><img src="' + (config.icon || 'https://img.picui.cn/free/2025/06/30/686234d353680.png') + '" alt="Logo" class="logo-img"><h1>' + (config.name || '节点订阅服务') + '</h1></div><p class="description">' + (config.description || '多格式订阅转换服务') + '</p></header><main class="main-content"><section class="subscription-section"><h2>📡 订阅链接</h2><div class="subscription-grid">' + subscriptionLinks.map(link => '<div class="subscription-card glass-card" onclick="copyToClipboard(\'' + link.url + '\')"><div class="subscription-icon">' + link.icon + '</div><h3>' + link.name + '</h3><p class="subscription-url">' + link.url + '</p><button class="copy-btn">📋 复制链接</button></div>').join('') + '</div></section><section class="config-section"><h2>⚙️ 配置信息</h2><div class="config-card glass-card"><div class="config-item"><span class="config-label">节点数量:</span><span class="config-value">' + (config.nodes ? config.nodes.length : 0) + '</span></div><div class="config-item"><span class="config-label">反代IP数量:</span><span class="config-value">' + (config.proxyIPs ? config.proxyIPs.length : 0) + '</span></div><div class="config-item"><span class="config-label">Token:</span><span class="config-value">' + token + '</span></div></div></section>' + proxySection + '<section class="ini-section"><h2>📄 INI配置</h2><div class="ini-card glass-card"><textarea readonly class="ini-content">' + (config.iniTemplate || '') + '</textarea><button class="copy-btn" onclick="copyIniConfig()">📋 复制INI配置</button></div></section></main><footer class="glass-card"><p>© 2024 节点订阅服务 | <a href="' + baseUrl + '/admin?token=' + token + '" class="admin-link">🔧 管理面板</a></p></footer></div><div id="toast" class="toast"></div><script>' + getJavaScript() + '</script></body></html>';
 }
 
 
