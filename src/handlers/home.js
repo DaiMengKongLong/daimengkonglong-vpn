@@ -6,7 +6,7 @@ export async function handleHomePage(request, env) {
   
   try {
     const config = await getConfig(env, token);
-    const baseUrl = `${url.protocol}//${url.host}`;
+    const baseUrl = url.protocol + '//' + url.host;
     
     const html = generateHomePage(config, baseUrl, token);
     
@@ -24,22 +24,22 @@ export async function handleHomePage(request, env) {
 
 function generateHomePage(config, baseUrl, token) {
   const subscriptionLinks = [
-    { name: 'Base64订阅', url: `${baseUrl}/sub/base64?token=${token}`, icon: '📝' },
-    { name: 'Clash订阅', url: `${baseUrl}/sub/clash?token=${token}`, icon: '⚔️' },
-    { name: 'SingBox订阅', url: `${baseUrl}/sub/singbox?token=${token}`, icon: '📦' },
-    { name: 'Loon订阅', url: `${baseUrl}/sub/loon?token=${token}`, icon: '🌙' },
-    { name: 'Surge订阅', url: `${baseUrl}/sub/surge?token=${token}`, icon: '🌊' }
+    { name: 'Base64订阅', url: baseUrl + '/sub/base64?token=' + token, icon: '📝' },
+    { name: 'Clash订阅', url: baseUrl + '/sub/clash?token=' + token, icon: '⚔️' },
+    { name: 'SingBox订阅', url: baseUrl + '/sub/singbox?token=' + token, icon: '📦' },
+    { name: 'Loon订阅', url: baseUrl + '/sub/loon?token=' + token, icon: '🌙' },
+    { name: 'Surge订阅', url: baseUrl + '/sub/surge?token=' + token, icon: '🌊' }
   ];
 
-  return `<!DOCTYPE html>
+  return '<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${config.customTitle || '节点订阅服务'}</title>
+    <title>' + config.customTitle || \'节点订阅服务\' + '</title>
     <style>
-        ${getGlassmorphismCSS()}
-        ${config.customCSS || ''}
+        ' + getGlassmorphismCSS() + '
+        ' + config.customCSS || \'\'
     </style>
 </head>
 <body>
@@ -52,24 +52,24 @@ function generateHomePage(config, baseUrl, token) {
     <div class="container">
         <header class="glass-card">
             <div class="logo">
-                <img src="${config.icon}" alt="Logo" class="logo-img">
-                <h1>${config.name || '节点订阅服务'}</h1>
+                <img src="' + config.icon + '" alt="Logo" class="logo-img">
+                <h1>' + config.name || \'节点订阅服务\' + '</h1>
             </div>
-            <p class="description">${config.description || '多格式订阅转换服务'}</p>
+            <p class="description">' + config.description || \'多格式订阅转换服务\' + '</p>
         </header>
 
         <main class="main-content">
             <section class="subscription-section">
                 <h2>📡 订阅链接</h2>
                 <div class="subscription-grid">
-                    ${subscriptionLinks.map(link => `
-                        <div class="subscription-card glass-card" onclick="copyToClipboard('${link.url}')">
-                            <div class="subscription-icon">${link.icon}</div>
-                            <h3>${link.name}</h3>
-                            <p class="subscription-url">${link.url}</p>
+                    ' + subscriptionLinks.map(link => '
+                        <div class="subscription-card glass-card" onclick="copyToClipboard('${link.url + '')">
+                            <div class="subscription-icon">' + link.icon + '</div>
+                            <h3>' + link.name + '</h3>
+                            <p class="subscription-url">' + link.url + '</p>
                             <button class="copy-btn">📋 复制链接</button>
                         </div>
-                    `).join('')}
+                    ').join('')
                 </div>
             </section>
 
@@ -78,15 +78,15 @@ function generateHomePage(config, baseUrl, token) {
                 <div class="config-card glass-card">
                     <div class="config-item">
                         <span class="config-label">节点数量:</span>
-                        <span class="config-value">${config.nodes ? config.nodes.length : 0}</span>
+                        <span class="config-value">' + config.nodes ? config.nodes.length : 0 + '</span>
                     </div>
                     <div class="config-item">
                         <span class="config-label">反代IP数量:</span>
-                        <span class="config-value">${config.proxyIPs ? config.proxyIPs.length : 0}</span>
+                        <span class="config-value">' + config.proxyIPs ? config.proxyIPs.length : 0 + '</span>
                     </div>
                     <div class="config-item">
                         <span class="config-label">Token:</span>
-                        <span class="config-value">${token}</span>
+                        <span class="config-value">' + token + '</span>
                     </div>
                 </div>
             </section>
@@ -94,7 +94,7 @@ function generateHomePage(config, baseUrl, token) {
             <section class="ini-section">
                 <h2>📄 INI配置</h2>
                 <div class="ini-card glass-card">
-                    <textarea readonly class="ini-content">${config.iniTemplate || ''}</textarea>
+                    <textarea readonly class="ini-content">' + config.iniTemplate || '' + '</textarea>
                     <button class="copy-btn" onclick="copyIniConfig()">📋 复制INI配置</button>
                 </div>
             </section>
@@ -102,7 +102,7 @@ function generateHomePage(config, baseUrl, token) {
 
         <footer class="glass-card">
             <p>© 2024 节点订阅服务 | 
-                <a href="${baseUrl}/admin?token=${token}" class="admin-link">🔧 管理面板</a>
+                <a href="' + baseUrl + '/admin?token=' + token + '" class="admin-link">🔧 管理面板</a>
             </p>
         </footer>
     </div>
@@ -110,13 +110,13 @@ function generateHomePage(config, baseUrl, token) {
     <div id="toast" class="toast"></div>
 
     <script>
-        ${getJavaScript()}
+        ' + getJavaScript() + '
     </script>
 </body>
 </html>`;
 
 function getGlassmorphismCSS() {
-  return `
+  return '
     * {
         margin: 0;
         padding: 0;
@@ -401,11 +401,11 @@ function getGlassmorphismCSS() {
             text-align: center;
         }
     }
-  `;
+  ';
 }
 
 function getJavaScript() {
-  return `
+  return '
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(function() {
             showToast('链接已复制到剪贴板！');
@@ -462,8 +462,8 @@ function getJavaScript() {
             const xOffset = (x - 0.5) * speed * 20;
             const yOffset = (y - 0.5) * speed * 20;
 
-            shape.style.transform = `translate(\${xOffset}px, \${yOffset}px)`;
+            shape.style.transform = "translate(" + xOffset + "px, " + yOffset + "px)";
         });
     });
-  `;
+  ';
 }

@@ -66,7 +66,7 @@ async function handleSaveConfig(formData, env, token) {
   if (success) {
     return new Response('配置保存成功', { 
       status: 302, 
-      headers: { 'Location': `/admin?token=${token}&success=1` }
+      headers: { 'Location': `/admin?token=' + token + '&success=1` }
     });
   } else {
     return new Response('配置保存失败', { status: 500 });
@@ -106,7 +106,7 @@ async function handleAddNode(formData, env, token) {
   
   return new Response('节点添加成功', { 
     status: 302, 
-    headers: { 'Location': `/admin?token=${token}&success=2` }
+    headers: { 'Location': `/admin?token=' + token + '&success=2` }
   });
 }
 
@@ -121,7 +121,7 @@ async function handleDeleteNode(formData, env, token) {
   
   return new Response('节点删除成功', { 
     status: 302, 
-    headers: { 'Location': `/admin?token=${token}&success=3` }
+    headers: { 'Location': `/admin?token=' + token + '&success=3` }
   });
 }
 
@@ -139,7 +139,7 @@ async function handleAddProxyIP(formData, env, token) {
   
   return new Response('反代IP添加成功', { 
     status: 302, 
-    headers: { 'Location': `/admin?token=${token}&success=4` }
+    headers: { 'Location': `/admin?token=' + token + '&success=4` }
   });
 }
 
@@ -175,7 +175,7 @@ async function handleImportProxyIPs(formData, env, token) {
   
   return new Response('反代IP导入成功', { 
     status: 302, 
-    headers: { 'Location': `/admin?token=${token}&success=5` }
+    headers: { 'Location': `/admin?token=' + token + '&success=5` }
   });
 }
 
@@ -186,14 +186,14 @@ function isValidIP(ip) {
 }
 
 function generateAdminPage(config, token) {
-  return `<!DOCTYPE html>
+  return '<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理面板 - ${config.customTitle || '节点订阅服务'}</title>
+    <title>管理面板 - ' + config.customTitle || \'节点订阅服务\' + '</title>
     <style>
-        ${getAdminCSS()}
+        ' + getAdminCSS() + '
     </style>
 </head>
 <body>
@@ -206,15 +206,15 @@ function generateAdminPage(config, token) {
     <div class="container">
         <header class="glass-card">
             <h1>🔧 管理面板</h1>
-            <p>Token: ${token}</p>
-            <a href="/?token=${token}" class="back-link">← 返回首页</a>
+            <p>Token: ' + token + '</p>
+            <a href="/?token=' + token + '" class="back-link">← 返回首页</a>
         </header>
 
         <div class="admin-tabs">
-            <button class="tab-btn active" onclick="showTab('basic')">基础配置</button>
-            <button class="tab-btn" onclick="showTab('nodes')">节点管理</button>
-            <button class="tab-btn" onclick="showTab('proxy')">反代IP</button>
-            <button class="tab-btn" onclick="showTab('templates')">模板配置</button>
+            <button class="tab-btn active" onclick="showTab(\'basic\')">基础配置</button>
+            <button class="tab-btn" onclick="showTab(\'nodes\')">节点管理</button>
+            <button class="tab-btn" onclick="showTab(\'proxy\')">反代IP</button>
+            <button class="tab-btn" onclick="showTab(\'templates\')">模板配置</button>
         </div>
 
         <!-- 基础配置 -->
@@ -226,27 +226,27 @@ function generateAdminPage(config, token) {
                     
                     <div class="form-group">
                         <label>订阅名称</label>
-                        <input type="text" name="name" value="${config.name || ''}" required>
+                        <input type="text" name="name" value="' + config.name || \'\' + '" required>
                     </div>
                     
                     <div class="form-group">
                         <label>订阅描述</label>
-                        <textarea name="description" rows="3">${config.description || ''}</textarea>
+                        <textarea name="description" rows="3">' + config.description || \'\' + '</textarea>
                     </div>
                     
                     <div class="form-group">
                         <label>图标URL</label>
-                        <input type="url" name="icon" value="${config.icon || ''}" placeholder="https://example.com/icon.png">
+                        <input type="url" name="icon" value="' + config.icon || \'\' + '" placeholder="https://example.com/icon.png">
                     </div>
                     
                     <div class="form-group">
                         <label>自定义标题</label>
-                        <input type="text" name="customTitle" value="${config.customTitle || ''}" placeholder="网站标题">
+                        <input type="text" name="customTitle" value="' + config.customTitle || \'\' + '" placeholder="网站标题">
                     </div>
                     
                     <div class="form-group">
                         <label>自定义CSS</label>
-                        <textarea name="customCSS" rows="5" placeholder="/* 自定义样式 */">${config.customCSS || ''}</textarea>
+                        <textarea name="customCSS" rows="5" placeholder="/* 自定义样式 */">' + config.customCSS || \'\' + '</textarea>
                     </div>
                     
                     <button type="submit" class="submit-btn">💾 保存配置</button>
@@ -257,22 +257,22 @@ function generateAdminPage(config, token) {
         <!-- 节点管理 -->
         <div id="nodes" class="tab-content">
             <div class="glass-card">
-                <h2>节点列表 (${config.nodes ? config.nodes.length : 0}个)</h2>
+                <h2>节点列表 (' + config.nodes ? config.nodes.length : 0 + '个)</h2>
                 <div class="nodes-list">
-                    ${config.nodes ? config.nodes.map((node, index) => `
+                    ' + config.nodes ? config.nodes.map((node, index) => '
                         <div class="node-item">
                             <div class="node-info">
-                                <strong>${node.name || node.server}</strong>
-                                <span class="node-type">${node.type.toUpperCase()}</span>
-                                <span class="node-address">${node.server}:${node.port}</span>
+                                <strong>${node.name || node.server + '</strong>
+                                <span class="node-type">' + node.type.toUpperCase() + '</span>
+                                <span class="node-address">' + node.server + ':' + node.port + '</span>
                             </div>
                             <form method="POST" style="display: inline;">
                                 <input type="hidden" name="action" value="delete_node">
-                                <input type="hidden" name="nodeIndex" value="${index}">
+                                <input type="hidden" name="nodeIndex" value="' + index + '">
                                 <button type="submit" class="delete-btn" onclick="return confirm('确定删除此节点？')">🗑️</button>
                             </form>
                         </div>
-                    `).join('') : '<p>暂无节点</p>'}
+                    ').join('') : '<p>暂无节点</p>'
                 </div>
             </div>
 
@@ -391,11 +391,11 @@ function generateAdminPage(config, token) {
         <!-- 反代IP管理 -->
         <div id="proxy" class="tab-content">
             <div class="glass-card">
-                <h2>反代IP列表 (${config.proxyIPs ? config.proxyIPs.length : 0}个)</h2>
+                <h2>反代IP列表 (' + config.proxyIPs ? config.proxyIPs.length : 0 + '个)</h2>
                 <div class="proxy-list">
-                    ${config.proxyIPs ? config.proxyIPs.map(ip => `
-                        <div class="proxy-item">${ip}</div>
-                    `).join('') : '<p>暂无反代IP</p>'}
+                    ' + (config.proxyIPs ? config.proxyIPs.map(ip => '
+                        <div class="proxy-item">' + ip + '</div>
+                    ').join('') : '<p>暂无反代IP</p>') + '
                 </div>
             </div>
 
@@ -437,7 +437,7 @@ function generateAdminPage(config, token) {
                     
                     <div class="form-group">
                         <label>INI配置模板</label>
-                        <textarea name="iniTemplate" rows="20" class="code-textarea">${config.iniTemplate || ''}</textarea>
+                        <textarea name="iniTemplate" rows="20" class="code-textarea">' + config.iniTemplate || '' + '</textarea>
                     </div>
                     
                     <button type="submit" class="submit-btn">💾 保存INI模板</button>
@@ -451,7 +451,7 @@ function generateAdminPage(config, token) {
                     
                     <div class="form-group">
                         <label>Clash配置模板 (JSON格式，可选)</label>
-                        <textarea name="clashTemplate" rows="15" class="code-textarea" placeholder='{"dns": {"enable": true}}'>${config.clashTemplate || ''}</textarea>
+                        <textarea name="clashTemplate" rows="15" class="code-textarea" placeholder='{"dns": {"enable": true}}'>' + config.clashTemplate || '' + '</textarea>
                     </div>
                     
                     <button type="submit" class="submit-btn">💾 保存Clash模板</button>
@@ -461,13 +461,13 @@ function generateAdminPage(config, token) {
     </div>
 
     <script>
-        ${getAdminJavaScript()}
+        ' + getAdminJavaScript() + '
     </script>
 </body>
 </html>`;
 
 function getAdminCSS() {
-  return `
+  return '
     * {
         margin: 0;
         padding: 0;
@@ -769,11 +769,11 @@ function getAdminCSS() {
             text-align: center;
         }
     }
-  `;
+  ';
 }
 
 function getAdminJavaScript() {
-  return `
+  return '
     function showTab(tabName) {
         // 隐藏所有标签内容
         const tabContents = document.querySelectorAll('.tab-content');
@@ -879,22 +879,21 @@ function getAdminJavaScript() {
 
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.className = `notification \${type}`;
+        notification.className = "notification " + type;
         notification.textContent = message;
 
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: \${type === 'success' ? 'linear-gradient(45deg, #00b894, #00cec9)' : 'linear-gradient(45deg, #667eea, #764ba2)'};
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-        `;
+        notification.style.cssText =
+            "position: fixed;" +
+            "top: 20px;" +
+            "right: 20px;" +
+            "background: " + (type === 'success' ? 'linear-gradient(45deg, #00b894, #00cec9)' : 'linear-gradient(45deg, #667eea, #764ba2)') + ";" +
+            "color: white;" +
+            "padding: 15px 25px;" +
+            "border-radius: 10px;" +
+            "box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);" +
+            "z-index: 1000;" +
+            "transform: translateX(400px);" +
+            "transition: transform 0.3s ease;";
 
         document.body.appendChild(notification);
 
@@ -929,17 +928,16 @@ function getAdminJavaScript() {
             generateBtn.type = 'button';
             generateBtn.textContent = '🎲 生成UUID';
             generateBtn.className = 'generate-uuid-btn';
-            generateBtn.style.cssText = `
-                margin-left: 10px;
-                padding: 8px 15px;
-                background: linear-gradient(45deg, #feca57, #ff9ff3);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 12px;
-                font-weight: 600;
-            `;
+            generateBtn.style.cssText =
+                "margin-left: 10px;" +
+                "padding: 8px 15px;" +
+                "background: linear-gradient(45deg, #feca57, #ff9ff3);" +
+                "color: white;" +
+                "border: none;" +
+                "border-radius: 8px;" +
+                "cursor: pointer;" +
+                "font-size: 12px;" +
+                "font-weight: 600;";
 
             generateBtn.onclick = function() {
                 uuidField.value = generateUUID();
@@ -948,5 +946,5 @@ function getAdminJavaScript() {
             uuidField.parentNode.appendChild(generateBtn);
         }
     });
-  `;
+  ';
 }
