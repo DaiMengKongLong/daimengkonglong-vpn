@@ -57,8 +57,19 @@ async function handleSaveConfig(formData, env, token) {
   config.description = formData.get('description') || config.description;
   config.icon = formData.get('icon') || config.icon;
   config.customTitle = formData.get('customTitle') || config.customTitle;
-  config.iniTemplate = formData.get('iniTemplate') || config.iniTemplate;
-  config.clashTemplate = formData.get('clashTemplate') || config.clashTemplate;
+
+  // 特别处理INI模板
+  const newIniTemplate = formData.get('iniTemplate');
+  if (newIniTemplate !== null && newIniTemplate !== undefined) {
+    config.iniTemplate = newIniTemplate;
+    console.log('更新INI模板，长度:', newIniTemplate.length);
+  }
+
+  const newClashTemplate = formData.get('clashTemplate');
+  if (newClashTemplate !== null && newClashTemplate !== undefined) {
+    config.clashTemplate = newClashTemplate;
+  }
+
   config.customCSS = formData.get('customCSS') || config.customCSS;
 
   // 更新订阅图标配置
@@ -70,14 +81,35 @@ async function handleSaveConfig(formData, env, token) {
   if (formData.get('surgeIcon')) config.subscriptionIcons.surge = formData.get('surgeIcon');
   
   try {
+    // 验证INI配置（如果存在）
+    if (config.iniTemplate) {
+      const { validateIniConfig } = await import('../utils/iniParser.js');
+      const validation = validateIniConfig(config.iniTemplate);
+      if (!validation.valid) {
+        console.error('INI配置验证失败:', validation.error);
+        return new Response(`INI配置无效：${validation.error}`, { status: 400 });
+      }
+      console.log('INI配置验证通过');
+    }
+
+    console.log('准备保存配置:', {
+      name: config.name,
+      hasIniTemplate: !!config.iniTemplate,
+      iniTemplateLength: config.iniTemplate ? config.iniTemplate.length : 0,
+      nodesCount: config.nodes ? config.nodes.length : 0,
+      proxyIPsCount: config.proxyIPs ? config.proxyIPs.length : 0
+    });
+
     const success = await saveConfig(env, token, config);
 
     if (success) {
+      console.log('配置保存成功');
       return new Response('配置保存成功', {
         status: 302,
         headers: { 'Location': `/admin?token=${token}&success=1` }
       });
     } else {
+      console.error('配置保存失败：saveConfig返回false');
       return new Response('配置保存失败：KV存储操作失败', { status: 500 });
     }
   } catch (error) {

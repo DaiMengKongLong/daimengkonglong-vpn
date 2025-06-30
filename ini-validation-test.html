@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INI配置验证测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            height: 400px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: "Monaco", "Menlo", monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+        }
+        .result.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+            color: #155724;
+        }
+        .result.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .groups-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        .group-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        .group-item:last-child {
+            border-bottom: none;
+        }
+        .group-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .group-type {
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 INI配置验证测试</h1>
+        
+        <div class="form-group">
+            <label for="iniConfig">INI配置内容:</label>
+            <textarea id="iniConfig" placeholder="请粘贴您的INI配置内容...">[custom]
+;不要随意改变关键字，否则会导致出错
+;acl4SSR规则
+
+;设置规则标志位
+ruleset=🎯 全球直连,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/LocalAreaNetwork.list
+ruleset=🛑 广告拦截,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/BanAD.list
+
+;设置分组标志位
+custom_proxy_group=🚀 节点选择`select`[]♻️ 自动选择`.*
+custom_proxy_group=♻️ 自动选择`url-test`.*`http://www.gstatic.com/generate_204`300,,50
+
+enable_rule_generator=true
+overwrite_original_rules=true</textarea>
+        </div>
+        
+        <div>
+            <button class="btn" onclick="validateConfig()">🔍 验证配置</button>
+            <button class="btn btn-success" onclick="loadDefaultConfig()">📋 加载默认配置</button>
+            <button class="btn" onclick="clearConfig()">🗑️ 清空</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // 简化的INI解析器（用于测试）
+        function parseIniConfig(iniContent) {
+            if (!iniContent || typeof iniContent !== 'string') {
+                return null;
+            }
+
+            const config = {
+                rulesets: [],
+                proxyGroups: [],
+                settings: {}
+            };
+
+            const lines = iniContent.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith(';'));
+
+            for (const line of lines) {
+                // 解析ruleset
+                if (line.startsWith('ruleset=')) {
+                    const rulesetContent = line.substring(8);
+                    const [groupName, ruleUrl] = rulesetContent.split(',', 2);
+                    
+                    if (groupName && ruleUrl) {
+                        config.rulesets.push({
+                            group: groupName.trim(),
+                            url: ruleUrl.trim()
+                        });
+                    }
+                }
+                
+                // 解析custom_proxy_group
+                else if (line.startsWith('custom_proxy_group=')) {
+                    const groupContent = line.substring(19);
+                    const parts = groupContent.split('`');
+                    
+                    if (parts.length >= 3) {
+                        const group = {
+                            name: parts[0].trim(),
+                            type: parts[1].trim(),
+                            proxies: [],
+                            url: '',
+                            interval: 300
+                        };
+
+                        for (let i = 2; i < parts.length; i++) {
+                            const part = parts[i].trim();
+                            
+                            if (part.startsWith('http://') || part.startsWith('https://')) {
+                                group.url = part;
+                            } else if (/^\d+$/.test(part)) {
+                                group.interval = parseInt(part);
+                            } else if (part) {
+                                group.proxies.push(part);
+                            }
+                        }
+
+                        config.proxyGroups.push(group);
+                    }
+                }
+                
+                // 解析其他设置
+                else if (line.includes('=')) {
+                    const [key, value] = line.split('=', 2);
+                    if (key && value) {
+                        config.settings[key.trim()] = value.trim();
+                    }
+                }
+            }
+
+            return config;
+        }
+
+        function validateConfig() {
+            const iniContent = document.getElementById('iniConfig').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!iniContent.trim()) {
+                resultDiv.innerHTML = '<div class="result error">❌ 请输入INI配置内容</div>';
+                return;
+            }
+            
+            try {
+                const config = parseIniConfig(iniContent);
+                
+                if (!config) {
+                    resultDiv.innerHTML = '<div class="result error">❌ INI配置解析失败</div>';
+                    return;
+                }
+
+                if (config.proxyGroups.length === 0) {
+                    resultDiv.innerHTML = '<div class="result error">❌ 未找到有效的代理组配置</div>';
+                    return;
+                }
+
+                // 检查是否有基本的代理组
+                const hasMainGroup = config.proxyGroups.some(group => 
+                    group.name.includes('节点选择') || group.name.includes('PROXY') || group.type === 'select'
+                );
+
+                if (!hasMainGroup) {
+                    resultDiv.innerHTML = '<div class="result error">⚠️ 缺少主要的节点选择组</div>';
+                    return;
+                }
+
+                // 显示成功结果
+                let html = '<div class="result success">✅ INI配置验证通过！</div>';
+                
+                html += '<div class="stats">';
+                html += `<div class="stat-item"><div class="stat-number">${config.rulesets.length}</div><div class="stat-label">规则集</div></div>`;
+                html += `<div class="stat-item"><div class="stat-number">${config.proxyGroups.length}</div><div class="stat-label">代理组</div></div>`;
+                html += `<div class="stat-item"><div class="stat-number">${Object.keys(config.settings).length}</div><div class="stat-label">设置项</div></div>`;
+                html += '</div>';
+                
+                if (config.proxyGroups.length > 0) {
+                    html += '<h3>代理组列表:</h3>';
+                    html += '<div class="groups-list">';
+                    config.proxyGroups.forEach((group, index) => {
+                        html += `<div class="group-item">
+                            <span class="group-name">${group.name}</span>
+                            <span class="group-type">(${group.type})</span>
+                        </div>`;
+                    });
+                    html += '</div>';
+                }
+                
+                resultDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ 验证失败: ${error.message}</div>`;
+            }
+        }
+
+        function loadDefaultConfig() {
+            // 这里可以加载默认的INI配置
+            document.getElementById('iniConfig').value = `[custom]
+;不要随意改变关键字，否则会导致出错
+;acl4SSR规则
+
+;去广告：支持
+;自动测速：支持
+;微软分流：支持
+;苹果分流：支持
+;增强中国IP段：支持
+;增强国外GFW：支持
+
+;设置规则标志位
+ruleset=🎯 全球直连,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/LocalAreaNetwork.list
+ruleset=🎯 全球直连,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/UnBan.list
+ruleset=🛑 广告拦截,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/BanAD.list
+ruleset=🍃 应用净化,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/BanProgramAD.list
+ruleset=📲 电报消息,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Telegram.list
+ruleset=📹 油管视频,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Ruleset/YouTube.list
+ruleset=🎥 奈飞视频,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Ruleset/Netflix.list
+ruleset=🚀 节点选择,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ProxyGFWlist.list
+ruleset=🎯 全球直连,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ChinaDomain.list
+ruleset=🎯 全球直连,[]GEOIP,CN
+ruleset=🐟 漏网之鱼,[]FINAL
+
+;设置分组标志位
+custom_proxy_group=🚀 节点选择\`select\`[]♻️ 自动选择\`[]🇭🇰 香港节点\`[]🇺🇲 美国节点\`[]🇯🇵 日本节点\`[]DIRECT
+custom_proxy_group=♻️ 自动选择\`url-test\`.*\`http://www.gstatic.com/generate_204\`300,,50
+custom_proxy_group=📲 电报消息\`select\`[]🚀 节点选择\`[]♻️ 自动选择\`[]DIRECT
+custom_proxy_group=📹 油管视频\`select\`[]🚀 节点选择\`[]♻️ 自动选择\`[]DIRECT
+custom_proxy_group=🎥 奈飞视频\`select\`[]🚀 节点选择\`[]♻️ 自动选择\`[]DIRECT
+custom_proxy_group=🎯 全球直连\`select\`[]DIRECT\`[]🚀 节点选择
+custom_proxy_group=🛑 广告拦截\`select\`[]REJECT\`[]DIRECT
+custom_proxy_group=🍃 应用净化\`select\`[]REJECT\`[]DIRECT
+custom_proxy_group=🐟 漏网之鱼\`select\`[]🚀 节点选择\`[]DIRECT
+custom_proxy_group=🇭🇰 香港节点\`url-test\`(港|HK|hk|Hong Kong)\`http://www.gstatic.com/generate_204\`300,,50
+custom_proxy_group=🇺🇲 美国节点\`url-test\`(美|US|United States)\`http://www.gstatic.com/generate_204\`300,,50
+custom_proxy_group=🇯🇵 日本节点\`url-test\`(日本|JP|Japan)\`http://www.gstatic.com/generate_204\`300,,50
+
+enable_rule_generator=true
+overwrite_original_rules=true`;
+            
+            document.getElementById('result').innerHTML = '<div class="result">📋 已加载默认配置</div>';
+        }
+
+        function clearConfig() {
+            document.getElementById('iniConfig').value = '';
+            document.getElementById('result').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
