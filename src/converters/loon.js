@@ -78,8 +78,31 @@ skip-server-cert-verify = true`;
 
 function getProxyIP(originalIP, proxyIPs) {
   if (!proxyIPs || proxyIPs.length === 0) return null;
+
+  // 随机选择一个反代IP
   const randomIndex = Math.floor(Math.random() * proxyIPs.length);
-  return proxyIPs[randomIndex];
+  const selectedProxy = proxyIPs[randomIndex];
+
+  // 解析反代IP格式: IP:端口#地区 或 IP#地区 或 纯IP
+  if (selectedProxy.includes('#')) {
+    // 格式: IP:端口#地区 或 IP#地区
+    const [ipPart] = selectedProxy.split('#');
+    if (ipPart.includes(':')) {
+      // 格式: IP:端口#地区，只返回IP部分
+      const [ip] = ipPart.split(':');
+      return ip.trim();
+    } else {
+      // 格式: IP#地区，返回IP部分
+      return ipPart.trim();
+    }
+  } else if (selectedProxy.includes(':')) {
+    // 格式: IP:端口，只返回IP部分
+    const [ip] = selectedProxy.split(':');
+    return ip.trim();
+  } else {
+    // 纯IP格式
+    return selectedProxy.trim();
+  }
 }
 
 function generateVmessProxy(node, serverIP, name) {
