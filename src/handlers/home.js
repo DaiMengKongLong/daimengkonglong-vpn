@@ -116,7 +116,7 @@ function generateHomePage(config, baseUrl, token) {
 </html>`;
 
 function getGlassmorphismCSS() {
-  return \`
+  return `
     * {
         margin: 0;
         padding: 0;
@@ -401,11 +401,11 @@ function getGlassmorphismCSS() {
             text-align: center;
         }
     }
-  \`;
+  `;
 }
 
 function getJavaScript() {
-  return \`
+  return `
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(function() {
             showToast('链接已复制到剪贴板！');
@@ -462,8 +462,8 @@ function getJavaScript() {
             const xOffset = (x - 0.5) * speed * 20;
             const yOffset = (y - 0.5) * speed * 20;
 
-            shape.style.transform = \\\`translate(\\\${xOffset}px, \\\${yOffset}px)\\\`;
+            shape.style.transform = `translate(\${xOffset}px, \${yOffset}px)`;
         });
     });
-  \`;
+  `;
 }

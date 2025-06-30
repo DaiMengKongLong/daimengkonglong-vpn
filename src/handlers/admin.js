@@ -467,7 +467,7 @@ function generateAdminPage(config, token) {
 </html>`;
 
 function getAdminCSS() {
-  return \`
+  return `
     * {
         margin: 0;
         padding: 0;
@@ -769,11 +769,11 @@ function getAdminCSS() {
             text-align: center;
         }
     }
-  \`;
+  `;
 }
 
 function getAdminJavaScript() {
-  return \`
+  return `
     function showTab(tabName) {
         // 隐藏所有标签内容
         const tabContents = document.querySelectorAll('.tab-content');
@@ -879,14 +879,14 @@ function getAdminJavaScript() {
 
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
-        notification.className = \\\`notification \\\${type}\\\`;
+        notification.className = `notification \${type}`;
         notification.textContent = message;
 
-        notification.style.cssText = \\\`
+        notification.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
-            background: \\\${type === 'success' ? 'linear-gradient(45deg, #00b894, #00cec9)' : 'linear-gradient(45deg, #667eea, #764ba2)'};
+            background: \${type === 'success' ? 'linear-gradient(45deg, #00b894, #00cec9)' : 'linear-gradient(45deg, #667eea, #764ba2)'};
             color: white;
             padding: 15px 25px;
             border-radius: 10px;
@@ -894,7 +894,7 @@ function getAdminJavaScript() {
             z-index: 1000;
             transform: translateX(400px);
             transition: transform 0.3s ease;
-        \\\`;
+        `;
 
         document.body.appendChild(notification);
 
@@ -929,7 +929,7 @@ function getAdminJavaScript() {
             generateBtn.type = 'button';
             generateBtn.textContent = '🎲 生成UUID';
             generateBtn.className = 'generate-uuid-btn';
-            generateBtn.style.cssText = \\\`
+            generateBtn.style.cssText = `
                 margin-left: 10px;
                 padding: 8px 15px;
                 background: linear-gradient(45deg, #feca57, #ff9ff3);
@@ -939,7 +939,7 @@ function getAdminJavaScript() {
                 cursor: pointer;
                 font-size: 12px;
                 font-weight: 600;
-            \\\`;
+            `;
 
             generateBtn.onclick = function() {
                 uuidField.value = generateUUID();
@@ -948,5 +948,5 @@ function getAdminJavaScript() {
             uuidField.parentNode.appendChild(generateBtn);
         }
     });
-  \`;
+  `;
 }
